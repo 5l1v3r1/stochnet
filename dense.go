@@ -2,7 +2,7 @@ package stochnet
 
 import "math/rand"
 
-const denseLearningDelta = 1
+const denseLearningDelta = 1e-2
 
 type Dense struct {
 	Weights [][]float32
@@ -54,10 +54,7 @@ func (d *denseResult) Learn(changeFlags []bool) {
 	delta := float32(denseLearningDelta)
 	inPosDesirability := make([]float32, len(d.Input.Activations()))
 	for i, change := range changeFlags {
-		if !change {
-			continue
-		}
-		if d.Output[i] {
+		if d.Output[i] == change {
 			d.Dense.Biases[i] -= delta
 			for j, in := range d.Input.Activations() {
 				if in {
@@ -79,9 +76,6 @@ func (d *denseResult) Learn(changeFlags []bool) {
 	upstream := make([]bool, len(inPosDesirability))
 	for i, x := range inPosDesirability {
 		upstream[i] = ((x > 0) != d.Input.Activations()[i])
-		if rand.Intn(3) == 0 {
-			upstream[i] = false
-		}
 	}
 	d.Input.Learn(upstream)
 }

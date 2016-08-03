@@ -17,10 +17,6 @@ func main() {
 		stochnet.NewDense(30, 1).Randomize(),
 	}
 
-	// The network doesn't learn if there are too many
-	// things to learn, hence I setup a perfect network
-	// and commented out some values.
-
 	log.Println("Initial correct rate:", correctRate(network))
 	for i := 0; i < 100000; i++ {
 		in1 := rand.Intn(2) == 0

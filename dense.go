@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-const denseLearningDelta = 1e-2
+const denseLearningDelta = 1e-3
 
 type Dense struct {
 	Weights [][]float32

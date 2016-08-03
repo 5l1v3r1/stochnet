@@ -12,39 +12,48 @@ import (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	network := stochnet.Network{
-		stochnet.NewDense(28*28, 1000).Randomize(),
-		stochnet.NewDense(1000, 10).Randomize(),
+		stochnet.NewDense(28*28, 300).Randomize(),
+		stochnet.NewDense(300, 10).Randomize(),
 	}
 
 	log.Println("Training ...")
 
-	dataset := mnist.LoadTrainingDataSet()
-	for _, item := range dataset.Samples {
-		bitmap := intensitiesToBools(item.Intensities)
-		output := network.Apply(stochnet.ConstBoolVec(bitmap))
-		change := make([]bool, 10)
-		for i, o := range output.Activations() {
-			if o != (i == item.Label) {
-				change[i] = true
+	var epoch int
+	for {
+		dataset := mnist.LoadTrainingDataSet()
+		perm := rand.Perm(len(dataset.Samples))
+		for i := 0; i < 5000; i++ {
+			item := dataset.Samples[perm[i]]
+			bitmap := intensitiesToBools(item.Intensities)
+			output := network.Apply(stochnet.ConstBoolVec(bitmap))
+			change := make([]bool, 10)
+			for i, o := range output.Activations() {
+				if o != (i == item.Label) {
+					change[i] = true
+				}
 			}
+			output.Learn(change)
 		}
-		output.Learn(change)
+
+		log.Printf("Cross validating epoch %d ...", epoch)
+		epoch++
+
+		hist := mnist.LoadTestingDataSet().CorrectnessHistogram(func(data []float64) int {
+			boolVec := stochnet.ConstBoolVec(intensitiesToBools(data))
+			output := network.Apply(boolVec).Activations()
+			var idxs []int
+			for i, o := range output {
+				if o {
+					idxs = append(idxs, i)
+				}
+			}
+			if len(idxs) == 0 {
+				return rand.Intn(10)
+			}
+			return idxs[rand.Intn(len(idxs))]
+		})
+		log.Println("Histogram:", hist)
 	}
-
-	log.Println("Cross validating ...")
-
-	hist := mnist.LoadTestingDataSet().CorrectnessHistogram(func(data []float64) int {
-		boolVec := stochnet.ConstBoolVec(intensitiesToBools(data))
-		output := network.Apply(boolVec).Activations()
-		var idx int
-		for i, o := range output {
-			if o {
-				idx = i
-			}
-		}
-		return idx
-	})
-	log.Println("Histogram:", hist)
 }
 
 func intensitiesToBools(f []float64) []bool {

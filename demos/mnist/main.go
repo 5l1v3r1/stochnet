@@ -13,7 +13,8 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	network := stochnet.Network{
 		stochnet.NewDense(28*28, 300).Randomize(),
-		stochnet.NewDense(300, 10).Randomize(),
+		stochnet.NewDense(300, 200).Randomize(),
+		stochnet.NewDense(200, 10).Randomize(),
 	}
 
 	log.Println("Training ...")
@@ -53,6 +54,13 @@ func main() {
 			return idxs[rand.Intn(len(idxs))]
 		})
 		log.Println("Histogram:", hist)
+
+		for i, layer := range network {
+			if i != 0 {
+				network[i-1].(*stochnet.Dense).AddOutputs(5)
+				layer.(*stochnet.Dense).AddInputs(5)
+			}
+		}
 	}
 }
 

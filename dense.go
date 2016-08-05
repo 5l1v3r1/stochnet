@@ -59,6 +59,26 @@ func (d *Dense) Apply(in BoolVec) BoolVec {
 	}
 }
 
+func (d *Dense) AddInputs(count int) {
+	for i := range d.Weights {
+		oldVec := d.Weights[i]
+		d.Weights[i] = make([]float32, len(oldVec)+count)
+		copy(d.Weights[i], oldVec)
+	}
+}
+
+func (d *Dense) AddOutputs(count int) {
+	inCount := len(d.Weights[0])
+	randScale := 2 / float32(math.Sqrt(float64(inCount)))
+	for i := 0; i < count; i++ {
+		d.Biases = append(d.Biases, 0)
+		d.Weights[i] = make([]float32, inCount)
+		for j := range d.Weights[i] {
+			d.Weights[i][j] = float32(rand.NormFloat64()) * randScale
+		}
+	}
+}
+
 type denseResult struct {
 	Dense   *Dense
 	Input   BoolVec
